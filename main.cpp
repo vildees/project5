@@ -35,10 +35,10 @@ int n = 2;                                     // number of planets
 int D = 3;                                     // dimensionality
 int values = 2*D;
 
-int N = 1000;
+int N      = 80;
 double t_i = 0.0 ;                             // initial time
-double t_f = 2.;                             // final time in years
-double dt = (t_f-t_i)/N;
+double t_f = 8.;                             // final time in years
+double dt  = (t_f-t_i)/N;
 
 int main() {
 
@@ -81,8 +81,8 @@ int main() {
     }
 
     Solver R = Solver(A, dAdt, M);
-    //R.RungeKutta4();
-    R.LeapFrog();
+    R.RungeKutta4();
+    //R.LeapFrog();
 }
 
 Solver:: Solver(vec A, vec dAdt, vec M) {
