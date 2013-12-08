@@ -618,7 +618,7 @@ For the cluster system with the modified force we see from \ref{kin_pot} that th
         
 		\end{subfigure}
 		
-		\begin{subfigure}
+		\begin{subfigure}[b]{0.6\textwidth}
         \includegraphics[scale=0.5]{pote_n1000t5.pdf}
         \caption{\textit{Total potential energy for the Cluster with smoothing function}}
 		\end{subfigure}
@@ -640,7 +640,46 @@ To test if the energies are in consistency with the virial theorem
 
 we calculated the total potential energy divided by the total kinetic energy for a late time step where the system is in equilibrium. We found that this value was approximately $-2$, as it should be.
 
-  
+\subsubsection*{Radial density}
+
+Number of particles average distance standard deviation
+\begin{tabular}{ l c r }
+  100 & 23 ly & 22 ly \\
+  150 &  13 ly & 15 ly \\
+  250 & 12 ly & 16 ly \\
+  500 & 8 ly & 13 ly \\
+\end{tabular}
+
+\begin{figure}[H]
+	\centering
+        \begin{subfigure}[b]{0.6\textwidth}
+        \includegraphics[scale=0.5]{Radial_density_100.pdf}
+        \caption{\textit{N = 100}}
+        
+		\end{subfigure}
+		
+		\begin{subfigure}[b]{0.6\textwidth}
+        \includegraphics[scale=0.5]{Radial_density_150.pdf}
+        \caption{\textit{N = 150}}
+		\end{subfigure}
+		
+		\begin{subfigure}[b]{0.6\textwidth}
+        \includegraphics[scale=0.5]{radial_density_250.pdf}
+        \caption{\textit{N = 250}}
+		\end{subfigure}
+		
+		\begin{subfigure}[b]{0.6\textwidth}
+        \includegraphics[scale=0.5]{radial_density_500.pdf}
+        \caption{\textit{N = 500}}
+		\end{subfigure}
+		
+		\label{fig:radial density}        
+\end{figure}
+
+
+
+
+
 \subsection*{Conclusion}
  
 
