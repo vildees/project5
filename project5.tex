@@ -26,8 +26,7 @@
 \end{titlepage}
 
 \begin{abstract}
-Results and conclusion
-http://young.physics.ucsc.edu/115/leapfrog.pdf
+In this project we consider Newtonian dynamics for both a two-body and N-body system. For the two-body system we use the Runge-Kutta 4 and the Leap-Frog method, and find that the Leap-Frog method is best for our use when we want long term stability. We simulate a cold collapse of a cluster composed of uniformly distributed particles within a sphere. Since the particles have no relative motion with respect to each other initially, the cluster collapses by gravity. We find that the development of the system after the collapse is highly dependent on whether we add a modification to the Newtonian force to deal with the close distance interaction between the particles. Without this modification the particles attains high kinetic energy, and are spread out after the collapse. With the modification some of the particles will be bound after the collapse, and we will reach an equilibrium state for the cluster.    
 \end{abstract}
 
 \section*{$N$-body simulation of an open galactic cluster}
@@ -49,7 +48,7 @@ To take care of the numerical instability that arises when the particles come ve
 The only force in this problem is gravity, given by Newton's law of gravitation. The force between two objects with masses $M_1$ and $M_2$ is
 
 \[
-F = \frac{GM_1 M_2}/{r^2}
+F = \frac{GM_1 M_2}{r^2}
 \]
 
 where $r$ is the distance between them and $G$ the gravitational constant.
@@ -85,9 +84,9 @@ We know that for circular motion the velocity will be tangential. It follows tha
 The next task in the project was to build a model of an open cluster. An open cluster is a group up to a few thousand gravitationally bound stars created from the collapse of a molecular cloud. In our model we work with a few hundred particles. We start the particles with no initial velocity, that is we simulate a so-called "cold collapse". Since the objects have no relative motion with respect to each other initially, the cluster collapses by its gravity.
 
 Since the distribution of the clumps in the cluster is spherical and uniform, all the clumps will collapse simultaneously.
-In a system like this the evolution of the system leads to a singularity after a finite time as $N -> \inf$, since all the mass arrives at the origin after a time $\tau_{crunch}$. The time of the collapse is given by $$\tau_{crunch} = \sqrt{\frac{3 \pi}{32G \rho_0}},$$ where $\rho_0$ is the initial mass density.
+In a system like this the evolution of the system leads to a singularity after a finite time as $N -> \infty$, since all the mass arrives at the origin after a time $\tau_{crunch}$. The time of the collapse is given by $$\tau_{crunch} = \sqrt{\frac{3 \pi}{32G \rho_0}},$$ where $\rho_0$ is the initial mass density.
 
-Our numerical simulation has a finite number of particles $N$, and thus the singularity does not occur. Even if we had the ability to make the simulation for an infinite number of particles, we have approximated the objects as point particles. In the limit where $N -> \inf$, and keeping $\rho$ constant, we should get a continuous fluid. However, looking at the particles as point particles, we will not get the uniformly distributed "lump" of mass which leads to the system collapse into a singularity.
+Our numerical simulation has a finite number of particles $N$, and thus the singularity does not occur. Even if we had the ability to make the simulation for an infinite number of particles, we have approximated the objects as point particles. In the limit where $N -> \infty$, and keeping $\rho_0$ constant, we should get a continuous fluid. However, looking at the particles as point particles, we will not get the uniformly distributed "lump" of mass which leads to the system collapse into a singularity.
 
 Using $\tau_{crunch}$ as an unit of time, we can find $G$ in these units.
 
@@ -112,7 +111,6 @@ We thus have
 \[
 G = \frac{3 \pi}{32} \frac{4 \pi R_0^3}{3 \mu N} = \frac{\pi^2 R_0^ 3}{8 \mu N}
 \]
-
 
 When two of the particles come very close we will find that a time step that is reasonable for larger distances now is far too large for our calculations. This because we will get very large accelerations when the particles have close encounters, and thus the necessity for very small time steps. To take care of this numerical instability we introduce a smoothing function. We modify the Newtonian force to make it finite at short ranges
 \[
