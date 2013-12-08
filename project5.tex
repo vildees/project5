@@ -6,6 +6,7 @@
 \usepackage{amsmath}
 \usepackage{ulem}
 \usepackage{a4wide}
+\usepackage{float}
 
 \usepackage{listings}
 \usepackage{tabularx}
@@ -166,78 +167,124 @@ n(r) = \frac{n_0}{\left(1 +\left(\frac{r}{r_0}\right)^4\right)}.
  
 \subsection*{Method}
 
-Both the Runge-Kutta and the Leap-Frog solver are methods that advances the solution from $x(t)$ to $x(t+h) = x(t) + hv(t)$ where $h$ is the step length to the new point we are calculating. The step is defined by splitting an interval of size $N$ in to sub-intervals $h = \frac{b-a}{N}$. With this step and the derivative of $x$ we can construct the next value of the function. 
+Both the Runge-Kutta and the Leap-Frog solvers are methods that advances the solution from $x(t)$ to $x(t+h) = x(t) + hv(t)$ where $h$ is the step length to the new point we are calculating. The step is defined by splitting an interval of size $N$ into sub-intervals $h = \frac{b-a}{N}$. With this step and the derivative of $x$ we can construct the next value of the function.
 
-If we were only to use the derivative at the beginning of each interval when calculating the next step, as in Euler's method, the error in each calculation will be in the power $O(\Delta t^2)$. The Runge-Kutta method improves the approximation by using trial steps within each interval to make a better estimate of the derivative. The fourth-order Runge-Kutta method requires four evaluations in each interval $\Delta t$, and thus reduces the error to the power $O(\Delta t^5$.  
+If we were only to use the derivative at the beginning of each interval when calculating the next step, as in Euler's method, the local truncation error would be on the order of $O(\Delta t^2)$. The Runge-Kutta methods improves the approximation by using trial steps within each interval to make a better estimate of the derivative. The fourth-order Runge-Kutta (RK4) method requires four evaluations in each interval $\Delta t$, and thus reduces the local error to the order of $O(\Delta t^5)$.
 
  
-\subsubsection*{The Runge-Kutta method}
+\subsubsection*{The Runge-Kutta 4 method}
 
-The Runge-Kutta solver is a method for solving ordinary differential equations for which we know the initial values. In this project the motion of the planets are described by a second-order differential equation of the position as a function of time. We want to find the propagation of this function forward in time starting from the given initial values. 
+The Runge-Kutta solvers are a set of methods for solving ordinary differential equations for which we know the initial values. In this project the motion of the planets are described by a second-order differential equation of the position as a function of time. We want to find the propagation of this function forward in time starting from the given initial values.
 
-Taylor series expansion of a function $x$ around $t$ gives
-$$ x(t+ \Delta t) = x(t) + \frac{dx}{dt} \Delta t + \frac{1}{2} + \frac{d^2 x}{d^2 t} (\Delta t)^2 + \cdots $$
+Runge-Kutta 4 (RK4) is based on Taylor expansion like Euler's method, but uses intermediate steps to find the slope when computing the next function value. These intermediate values are however computed using Euler's method. Consider the following definitions:
+\[
+\frac{dx}{dt}=f(t,x), \ x(t)=\int f(t,x)dt
+\]
+and discretized
+\[
+x_{i+1} = x_i + \int_{t_i}^{t_{i+1}}f(t,x)dt
+\]
+The latter equation is a discretized version of the Taylor expansion
+\[
+x(t+h) = x(t) + hf(t,x)
+\]
+If we simply set $f(t,x) = dx/dt$ we have Euler's method. RK4 however, computes the integral of $f(t,x)$ using Simpson's method:
+\[
+\int_{t_i}^{t_{i+1}}f(t,x)dt = x_i + \frac{h}{6} \lbrack f(t_i,x_i) + 4f(t_i+h/2,x_{i+1/2}) +
+f(t_i+h,x_{i+1}) \rbrack + O(h^5)
+\]
+\[
+= x_i + \frac{h}{6} (k1 + 2k2 + 2k3 + k4) + O(h^5)
+\]
+where $O(h^5)$ is the local truncation error, that accumulates to a global error on the order of $O(h^4)$ and the four slopes $k_i$ are
 
-If we assume a reasonable smooth function $x(t)$ and a small interval $\Delta t$ we can approximate $x(t)$ to $x(t + \Delta t)$ as long as we know the derivatives of $x(t)$. 
+\begin{equation}
+\begin{split}
+k_1 &= \Delta t f(t_i,x_i) \\
+k_2 &= \Delta t f(t_i + h/2, \ x_i + k_1/2) \\
+k_3 &= \Delta t f(t_i + h/2, \ x_i + k_2/2) \\
+k_4 &= \Delta t f(t_i + h, \ x_i + k_3)
+\end{split}
+\end{equation}
 
-In a general Runge-Kutta method we approximate the slope by different function evaluations with different weights.
+thus RK4 computes four different slopes $k_i$ and uses a weighted average of these to compute $x_{i+1}$. RK4 can be viewed as a predictor-corrector algorithm. We first compute a slope $k_1$ and use this to predict $x_{i+1/2}$ with Euler's method. This value is used to compute a new slope $k_2$, and then we use this new slope to correct $x_{i+1/2}$ with Euler's method, and so on. The idea is to compute the slope at different places in the interval $\lbrack t_i,t_{i+1} \rbrack$ to obtain a final slope that fits the function $x(t)$ we want to find better.
 
-When using the Runge-Kutta four approximation one estimates the slopes at four points, once at the initial point, twice at the trial midpoint and once at the trial endpoint. 
-$$ k_1 = \Delta t f(t_i,x_i) \\
-k_2 = \Delta t f(t_i + \Delta t /2, x_i + k_1/2) \\
-k_3 = \Delta t f(t_i + \Delta t/2, x_i + k_2/2) \\
-k_4 = \Delta t f(t_i + \Delta t, x_i + k3) $$
-
-These four derivatives constitute the next value in our propagation
-$$x_{i+1} = x_i + \frac{1}{6} (k_1 + 2(k_2+k_3) + k_4$$ 
-  
-\begin{figure}[h!]
-  \centering    \includegraphics[scale=0.5]{rk4.png}
+\begin{figure}[H]
+  \centering \includegraphics[scale=0.5]{rk4.png}
   \caption{\textit{Fourth-order Runge-Kutta method. In each step the derivative is evaluated four times:
 once at the initial point, twice at trial midpoints, and once at a trial endpoint. From these derivatives the
 final function value is calculated. }}
 \end{figure}
 
+\lstset{
+  basicstyle=\small\ttfamily,
+  frame=lrtb,
+  numbers=left
+}
 
- \begin{lstlisting}[title={Function RK4}]
-void Solver:: RungeKutta4() {
+Our implementation of the algorithm is shown below. f is a function that calculates and returns the derivative of the system state vector $A$, which contains the positions and velocities of all the objects.
 
-    vec k1, k2, k3, k4;
-    vec C = zeros(values*n);
+\begin{lstlisting}[title={Function RK4}]
+void Solver::RK4() {
+
+    .....
+
+    // vectors to use in the algorithm
+    vec k1(6*n), k2(6*n), k3(6*n), k4(6*n);
  
-    for(int i=0; i<N; i++) {
+    // time integration
+    for (int i=0; i<N; i++) {
 
-        Solver::SolveSystem(A);	 // Calculates the time derivatives 											of A 
-        k1 = dAdt;				
-        C = A + k1*(dt/2);		 // Updates A in a "temporary" 
-        								vector C
-        Solver::SolveSystem(C);
-       
-        k2 = dAdt;
-        C = A + k2*(dt/2);
-
-        Solver::SolveSystem(C);
-        k3 = dAdt;
-        C = A + k3*dt;
-
-        Solver::SolveSystem(C);
-        k4 = dAdt;
-
-        A += (dt/6.)*(k1 + 2*(k2+k3) + k4);
-      
-        }
+        k1 = f(A);
+        k2 = f(A + k1*h2);
+        k3 = f(A + k2*h2);
+        k4 = f(A + k3*h);
+        A += (h/6.0)*(k1 + 2*k2 + 2*k3 + k4);
+        
+        .....
     }
 }
-\end{lstlisting} 
+\end{lstlisting}
+
+
 
 \subsubsection*{The Leap-Frog method}
 
-The Leap-Frog scheme uses another approach to reach the best approximation. In the first step you use the initial conditions to calculate the velocity at the middle of the interval.
-$$ v(t + h/2) = v(t) + \frac{h}{2} a(t). $$
-Then you use this value to calculate the new position 
-$$x(t+h) = x(t) + hv(t + h/2).$$
-Finally you calculate the velocity at the end of the interval 
-$$v(t+h) = v(t+h/2) + \frac{h}{2} a(t+h).$$   
+The Leap-Frog scheme evaluates the positions and velocities at different time steps, in contrast to RK4. It is based on the Taylor expansion
+\[
+x(t+h) = x(t) + hx^{(1)}(t) + \frac{h^2}{2}x^{(2)}(t) + O(h^3)
+\]
+which can be rewritten as
+\[
+x(t+h) = x(t) + h \left( x^{(1)}(t) + \frac{h}{2}x^{(2)}(t) \right) + O(h^3)
+\]
+and if we also consider that
+\[
+x^{(1)}(t+h/2) = \left( x^{(1)}(t) + \frac{h}{2}x^{(2)}(t) \right) + O(h^2)
+\]
+we end up with
+\[
+x(t+h) = x(t) + hx^{(1)}(t+h/2) + O(h^3) \tag{1}
+\]
+which is the equation for finding the new position. This needs to be combined with
+\[
+x^{(1)}(t+h/2) = x^{(1)}(t-h/2) + hx^{(2)}(t) + O(h^2) \tag{2}
+\]
+thus the local truncation error goes like $h^3$ for the position and $h^2$ for the velocity.
+
+As we can see the positions and velocities are evaluated at different time steps; only half-step velocities are computed. $x^{(1)}(t) = v(t)$ can be obtained explicitly if needed:
+\[
+x^{(1)}(t+h) = x^{(1)}(t+h/2) + \frac{h}{2}x^{(2)}(t) + O(h^2) \tag{3}
+\]
+
+The Leap-Frog algorithm can be summarized like this: We compute the velocity at $t+h/2$ with equation $(1)$ so that $x(t+h)$ can be obtained using $(2)$. The velocity at $t+h$ can be evaluated using equation $(3)$ if needed. This scheme requires that the accelerations $x^{(2)}(t) = a(t)$ are known, which in our case is provided by Newton's gravitational law.
+
+\begin{figure}[H]
+  \centering \includegraphics[scale=0.5]{leapfrog.png}
+  \caption{\textit{Leap-Frog method. The positions and velocities are evaluated at different time steps.}}
+\end{figure}
+
+Our implementation of the Leap-Frog method is shown below.
 
  \begin{lstlisting}[title={Function Leap Frog}]
 void Solver::LeapFrog() {
@@ -264,17 +311,17 @@ void Solver::LeapFrog() {
             vy = dAdt(vi+1);
             vz = dAdt(vi+2);
 
-            ax = dAdt(vi+3);                        // ax(t)
-            ay = dAdt(vi+4);                        // ay(t)
-            az = dAdt(vi+5);                        // az(t)
+            ax = dAdt(vi+3); // ax(t)
+            ay = dAdt(vi+4); // ay(t)
+            az = dAdt(vi+5); // az(t)
 
-            vx_new(i) =  vx + (dt/2)*ax;            // vx(t+dt/2)
-            vy_new(i) =  vy + (dt/2)*ay;            // vy(t+dt/2)
-            vz_new(i) =  vz + (dt/2)*az;            // vz(t+dt/2)
+            vx_new(i) = vx + (dt/2)*ax; // vx(t+dt/2)
+            vy_new(i) = vy + (dt/2)*ay; // vy(t+dt/2)
+            vz_new(i) = vz + (dt/2)*az; // vz(t+dt/2)
 
-            A(vi)   = x + dt*vx_new(i);             // x(t+dt)
-            A(vi+1) = y + dt*vy_new(i);             // y(t+dt)
-            A(vi+2) = z + dt*vz_new(i);             // z(t+dt)
+            A(vi) = x + dt*vx_new(i); // x(t+dt)
+            A(vi+1) = y + dt*vy_new(i); // y(t+dt)
+            A(vi+2) = z + dt*vz_new(i); // z(t+dt)
         }
 
         Solver::SolveSystem(A);
@@ -283,20 +330,20 @@ void Solver::LeapFrog() {
 
             int vi = values*i;
 
-            ax_new = dAdt(vi+3);                   // ax(t+dt)
-            ay_new = dAdt(vi+4);                   // ay(t+dt)
-            az_new = dAdt(vi+5);                   // az(t+dt)
+            ax_new = dAdt(vi+3); // ax(t+dt)
+            ay_new = dAdt(vi+4); // ay(t+dt)
+            az_new = dAdt(vi+5); // az(t+dt)
 
-            A(vi+3) = vx_new(i) + (dt/2)*ax_new;    // vx(t+h)
-            A(vi+4) = vy_new(i) + (dt/2)*ay_new;    // vy(t+h)
-            A(vi+5) = vz_new(i) + (dt/2)*az_new;    // vz(t+h)
+            A(vi+3) = vx_new(i) + (dt/2)*ax_new; // vx(t+h)
+            A(vi+4) = vy_new(i) + (dt/2)*ay_new; // vy(t+h)
+            A(vi+5) = vz_new(i) + (dt/2)*az_new; // vz(t+h)
         }
     }
 }
 \end{lstlisting}
 
 \subsection*{Implementing the methods}
-In my program I have two external classes; one that holds the values of various constants, like the gravitational constant, the masses of the different objects and so on, and one class "Planet". The latter creates an instance when called upon that contains information of the initial position and velocity and the mass corresponding to the object. For instance, 
+In our program we have two external classes; one that holds the values of various constants, like the gravitational constant, the masses of the different objects and so on, and one class "Planet". The latter creates an instance when called upon that contains information of the initial position and velocity and the mass corresponding to the object. For instance, 
 
 \begin{lstlisting}[title={Making of instance}]
 planet Earth = planet(1.0, 0.0, 0.0, 0.0, 2.*pi, 0.0, M_earth);
@@ -304,7 +351,7 @@ planet Earth = planet(1.0, 0.0, 0.0, 0.0, 2.*pi, 0.0, M_earth);
 
 makes an instance Earth that contains the initial $x, y, z$ - positions and $v_x, v_y, v_z$ - velocities and the mass of the Earth.
 
-I then create a vector $A$ that contains the initial positions, $(x,y,z)$, and the velocities, $(v_x,v_y,v_z)$, for all objects.
+We then create a vector $A$ that contains the initial positions, $(x,y,z)$, and the velocities, $(v_x,v_y,v_z)$, for all objects.
 
 \[ A = \left( \begin{array}{c}
 x - object \hspace*{0.5mm} 1\\
@@ -317,11 +364,11 @@ x - object \hspace*{0.5mm} 2\\
 ... \\
 vz - object \hspace*{0.5mm} n \end{array} \right)\]    
 
-I have a function that finds the time derivative of these values, $dAdt$. The time derivative of the position is simply the velocity, and that value is already saved in $A$ and easy to obtain. To find the acceleration, that is the time derivative of the velocities, I use Newtons second law. For each planet we then sum over the gravitational forces working on it from all the other objects, and thus find the acceleration. 
+We have a function that finds the time derivative of these values, $dAdt$. The time derivative of the position is simply the velocity, and that value is already saved in $A$ and easy to obtain. To find the acceleration, that is the time derivative of the velocities, we use Newtons second law. For each planet we then sum over the gravitational forces working on it from all the other objects, and thus find the acceleration. 
 
-To calculate the time propagation of the objects, I use the Runge-Kutta and the Leap-Frog methods discussed above. Both calculating the propagation forward in time starting from the given initial conditions. 
+To calculate the time propagation of the objects, we use the Runge-Kutta and the Leap-Frog methods discussed above. Both calculating the propagation forward in time starting from the given initial conditions. 
 
-My program is built in such a way that the function calculating the derivatives, the Runge-Kutta and the Leap-Frog solver works for different lengths of the vector $A$. Thus to change my program from the two-body system to the $N$-body system it is only the initial value of $A$ that needs changing.
+Our program is built in such a way that the function calculating the derivatives, the Runge-Kutta and the Leap-Frog solver works for different lengths of the vector $A$. Thus to change my program from the two-body system to the $N$-body system it is only the initial value of $A$ that needs changing.
 
 For the two-body system the initial conditions is quite straight forward
 
@@ -427,12 +474,6 @@ where $\sigma = 1$ and $\mu = 10$.
     }
   
 \end{lstlisting}
-
-
-\subsection*{Radial density}
-To calculate the radial density we look at the total energy for each object at a time t. Looping over the energies we pick put the objects that has a negative total energy and thus are bound. Using the mass and position of these particles we then calculate the center of mass. We then write the radius relative to the center of mass to a file.   
-
-
    
 \subsection*{Results}
 
