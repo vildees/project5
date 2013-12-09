@@ -223,25 +223,33 @@ final function value is calculated. }}
 Our implementation of the algorithm is shown below. f is a function that calculates and returns the derivative of the system state vector $A$, which contains the positions and velocities of all the objects.
 
 \begin{lstlisting}[title={Function RK4}]
-void Solver::RK4() {
+void Solver:: RungeKutta4() {
 
-    .....
+    vec k1, k2, k3, k4;
+    vec C = zeros(values*n);
 
-    // vectors to use in the algorithm
-    vec k1(6*n), k2(6*n), k3(6*n), k4(6*n);
- 
-    // time integration
-    for (int i=0; i<N; i++) {
+    for(int i=0; i<N; i++) {
 
-        k1 = f(A);
-        k2 = f(A + k1*h2);
-        k3 = f(A + k2*h2);
-        k4 = f(A + k3*h);
-        A += (h/6.0)*(k1 + 2*k2 + 2*k3 + k4);
-        
-        .....
-    }
-}
+        Solver::SolveSystem(A);
+
+        k1 = dAdt;
+        C = A + k1*(dt/2);
+
+        Solver::SolveSystem(C);
+
+        k2 = dAdt;
+        C = A + k2*(dt/2);
+
+        Solver::SolveSystem(C);
+
+        k3 = dAdt;
+        C = A + k3*dt;
+
+        Solver::SolveSystem(C);
+
+        k4 = dAdt;
+
+        this->A += (dt/6.)*(k1 + 2*(k2+k3) + k4);
 \end{lstlisting}
 
 
@@ -559,26 +567,27 @@ We see that for $\Delta t = 0.1$ the Runge-Kutta method gives a solution where t
 
 
 
-
 \subsection*{Energy}
 
-For the cluster simulation without the smoothing function, the particles is pulled towards the center of mass because of the gravitational force. When the particles get close together the acceleration, and thus the kinetic energy, increases a lot and the particles is spread out. See figure \ref{kin_pot_notsmooth}. The potential energy will increase as the particles is pulled together, but go to zero as the particles spreads out. 
+When making an animation of the cluster without the the smoothing function we see that at first most of the particles is pulled towards the center of mass while other is thrown out of the gravitational field. When the particles get close together there is a rapid increase in the particles velocity, and they are spread out. The ones that are not sent out far have to much movement to reach an equilibrium state, and roams around. This is as we could expect. The gravitational force between the particles drags them towards their center of mass. Without the smoothing function the acceleration will increase rapidly as the particles come close together, and thus the kinetic energy increases to be much larger than the potential energy holding the particles together. This can be seen from the figures \ref{kin_pot_notsmooth}. We see that the kinetic energy has a rapid increase, leading to the massive particle ejection. The potential energy will increase (that is get a larger negative value) as the particles move closer together. Soon after the time of the collapse, $\tau_{crunch}$, the potential energy decreases as a result of the particles spreading out from the center of mass. 
 
+We see that the total energy is not conserved. It holds the shape of the kinetic energy, it being some factors larger than the potential energy.  
+ 
 \begin{figure}[H]
 	\centering
         \begin{subfigure}[b]{0.6\textwidth}
-        \includegraphics[scale=0.5]{kin_energy_without_smooth.pdf}
+        \includegraphics[scale=0.5]{kin_usmooth.pdf}
         \caption{\textit{Total kinetic energy for the cluster without smoothing function}}
         
 		\end{subfigure}
 		
 		\begin{subfigure}[b]{0.6\textwidth}
-        \includegraphics[scale=0.5]{pot_e_uten_smooth.pdf}
+        \includegraphics[scale=0.5]{pot_usmooth.pdf}
         \caption{\textit{Total potential energy for the cluster without smoothing function}}
 		\end{subfigure}
 		
 		\begin{subfigure}[b]{0.6\textwidth}
-        \includegraphics[scale=0.5]{tot_e_withouth_smooth.pdf}
+        \includegraphics[scale=0.5]{ene_usmooth.pdf}
         \caption{\textit{Total energy for the cluster without smoothing function}}
 		\end{subfigure}
 		
@@ -606,7 +615,25 @@ For the cluster simulation without the smoothing function, the particles is pull
 		\caption{\textit{Simulation of cluster with smoothing function at $\tau = 0$, $\tau = 1$ and at equilibrium}}
 \end{figure}
 
-For the cluster system with the modified force we see from \ref{kin_pot} that the kinetic and the potential energy increases (that is the potential energy gets a larger negative value) towards the collapse at $\tau_{crunch}$. This we can also see from our animation of the cluster. At first the particles, that initially has no velocity, are dragged towards the center by the gravitational force from the other particles. Thus the particles are accelerated and the kinetic energy increases. As the particles come closer together, the gravitational force between them gets stronger as well and the potential energy increases. As we reach the time of the collapse, at $\tau_{crunch}$, many of the particles are ejected. Disregarding the energies of these particles, we find that both the kinetic and potential energy decreases and stabilizes as the system reaches an equilibrium. Both the kinetic and potential energy will fluctuate some, but stays approximately constant.    
+From figure \ref{ejectedenergy_usmooth} we see that for the un-modified system most of the ejected energy is sent out in the beginning of the simulation. After a short time the energy ejected becomes constant. From figure \ref{ejectedmass_usmooth} we see that the mass ejection also flattens out for larger $\tau$. But the mass ejection has a steeper curve than the energy for larger time. Thus the particles ejected at a later time will not have quite as high energy as the ones sent out at an early stage. 
+
+ 
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.6]{ejectedmass_usmooth.pdf}
+	\caption{The mass of the particles that escapes the system as a function of time for the system without a smoothing function}
+	\label{ejectedmass_usmooth}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.6]{ejectenergy_usmooth.pdf}
+	\caption{The mass of the particles that escapes the system as a function of time for the system without a smoothing function}
+	\label{ejectedenergy_usmooth}
+\end{figure}
+
+
+For the cluster system with the modified force we see from \ref{kin_pot} that the kinetic and the potential energy increases towards the collapse at $\tau_{crunch}$. This we can also see from our animation of the cluster. At first the particles, that initially has no velocity, are dragged towards the center by the gravitational force from the other particles. Thus the particles are accelerated and the kinetic energy increases. As the particles come closer together, the gravitational force between them gets stronger as well and the potential energy increases. As we reach the time of the collapse, at $\tau_{crunch}$, many of the particles are ejected. Disregarding the energies of these particles, we find that both the kinetic and potential energy decreases and stabilizes as the system reaches an equilibrium. Both the kinetic and potential energy will fluctuate some, but stays approximately constant.    
 
 \begin{figure}[H]
 	\centering
@@ -625,7 +652,7 @@ For the cluster system with the modified force we see from \ref{kin_pot} that th
 
 
 
-\begin{figure}
+\begin{figure}[H]
         \includegraphics[scale=0.5]{energy_n1000t5_N100.pdf}
         \caption{\textit{Total kinetic energy for the cluster with smoothing function}}
         \label{fig:totE}
@@ -636,7 +663,25 @@ To test if the energies are in consistency with the virial theorem
 2\langle K\rangle = -\langle V \rangle
 \]
 
-we calculated the total potential energy divided by the total kinetic energy for a late time step where the system is in equilibrium. We found that this value was approximately $-2$, as it should be.
+we calculated the total potential energy divided by the total kinetic energy for a late time step when the system is in equilibrium. We found that this value was approximately $-2$, as it should be.
+
+Figure \ref{ejectedmass} and \ref{ejectedenergy} shows the ejected mass and the ejected energy for a system of $N=100$ particles as a function of $\tau_{crunch}$. We see that these results fits well with our expectations; most of the mass and the energy is ejected soon after the collapse. For time larger than $\tau_{crunch}$ the functions smooths out, corresponding to our system reaching the equilibrium state. 
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{ejected_mass.pdf}
+	\caption{The mass of the particles that escapes the system as a function of time}
+	\label{ejectedmass}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{ejected_energy.pdf}
+	\caption{The energy of the particles that escapes the system as a function of time}
+	\label{ejectedenergy}
+\end{figure}
+
+
 
 \subsubsection*{Radial density}
 
@@ -663,12 +708,12 @@ we calculated the total potential energy divided by the total kinetic energy for
         \caption{\textit{N = 500}}
 		\end{subfigure}
 		
-		\label{fig:radial density}       
+		\label{fig:radial density}    
 				 
 \end{figure}
 
-\begin{tabular}{ l c r }
- N & Average distance & Standard deviation \\ 
+\begin{tabular}{l c r}
+ \rowfont{\bfseries\itshape+large}  N & Average distance & Standard deviation \\ 
  \hline 
   100 & 23 ly & 22 ly \\
   150 &  13 ly & 15 ly \\
@@ -676,9 +721,19 @@ we calculated the total potential energy divided by the total kinetic energy for
   500 & 8 ly & 13 ly \\
 \end{tabular}
 
-\subsection*{Conclusion}
- 
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{average_distance_N.pdf}
+	\caption{The average distance for different N-values}
+	\label{Averagedistance}
+\end{figure}
 
+
+\subsection*{Conclusion}
+
+Throughout this project we have found that the Leap-Frog method is more stable than the Runge-Kutta method of fourth order when it comes to time steps and simulating systems that require long time. We therefore concluded that the Leap-Frog method was the best to use when simulating an open cluster, a system for which the stability of
+the solution is more important than its short term accuracy. When simulating the cold collapse of a cluster with masses and positions uniformly and randomly distributed, we found that we had to modify the gravitational force to take care of the numerical instabilities that arises when the particles come very close to each other. When adding the modification to the Newtonian force, we saw that the system first contracted towards the center of mass which caused an increase to the energies. At a time $\tau_{crunch}$ the energies got so big that some of the particles got thrown away. After this sudden change, the remaining particles fell into an equilibrium state, ejecting some particles along the way.  
+ 
 \end{document}
 
     
