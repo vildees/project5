@@ -685,6 +685,8 @@ Figure \ref{ejectedmass} and \ref{ejectedenergy} shows the ejected mass and the 
 
 \subsubsection*{Radial density}
 
+Making a plot of the radial density we see that the density of particles decreases as one moves further away from the center of mass. The gravitational force will be bigger nearer to the center of mass, and thus more particles will be bound in this area. 
+
 \begin{figure}[H]
 	\centering
         \begin{subfigure}[b]{0.6\textwidth}
@@ -712,15 +714,19 @@ Figure \ref{ejectedmass} and \ref{ejectedenergy} shows the ejected mass and the 
 				 
 \end{figure}
 
-\begin{tabular}{l c r}
- \rowfont{\bfseries\itshape+large}  N & Average distance & Standard deviation \\ 
+When we have systems with more particles we see that we have more particles in the inner shells. This can be a reasonable result considering that more particles means larger mass density. The gravitational force holding the particles together will then be larger. 
+
+\begin{tabular}{l c c}
+N & Average distance & Standard deviation \\ 
  \hline 
   100 & 23 ly & 22 ly \\
-  150 &  13 ly & 15 ly \\
+  150 & 13 ly & 15 ly \\
   250 & 12 ly & 16 ly \\
   500 & 8 ly & 13 ly \\
 \end{tabular}
 
+As we can see from the table it seems like the average distance and standard deviation decreases for larger $N$. This is consistent with what we saw from the histogram; for the larger systems we have a bigger concentration in the inner shells, with less spread than for lower $N$. 
+ 
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.6]{average_distance_N.pdf}
@@ -728,6 +734,25 @@ Figure \ref{ejectedmass} and \ref{ejectedenergy} shows the ejected mass and the 
 	\label{Averagedistance}
 \end{figure}
 
+To see if our data fit the expression 
+\[
+n(r) = \frac{n_0}{\left(1 +\left(\frac{r}{r_0}\right)^4\right)}.
+\]
+we need to find an expression for $r_0$ and $n_0$ for the different $N$-values. To find the values best suited for our histograms we used a curve fitting tool in matlab. For $N=100$ we found the values to be $n_0 = 0.3363$ and $r_0 = 6.432$, and for $N=500$ we found that $n_0 = 64.92$ and $r_0 = 4.994$. When plotting the curves from the expression together with the histograms, we see that the expression fits quite well. It seems to be more precise for the case where $N=100$ than for $N=500$.
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{hist_N100.pdf}
+	\caption{Radial distribution of particles}
+	\label{Hist100}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=0.6]{hist_N500.pdf}
+	\caption{Radial distribution of particles}
+	\label{Hist500}
+\end{figure}
 
 \subsection*{Conclusion}
 
